@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Login — Dashboard Data Pasar{% endblock %}
+{% block content %}
+<div class="login-wrap">
+    <div class="login-card card border-0 shadow-lg">
+        <div class="card-body p-4 p-md-5">
+            <div class="login-icon"><i class="bi bi-bar-chart-fill"></i></div>
+            <h3 class="text-center fw-bold mb-1">Dashboard Data Pasar</h3>
+            <p class="text-center text-secondary mb-4">Silakan masuk untuk melanjutkan</p>
+            {% if form.errors %}
+                <div class="alert alert-danger py-2">Username atau password tidak sesuai.</div>
+            {% endif %}
+            <form method="post" novalidate>
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Username</label>
+                    <input class="form-control form-control-lg" type="text" name="username" autocomplete="username" required autofocus>
+                </div>
+                <div class="mb-4">
+                    <label class="form-label fw-semibold">Password</label>
+                    <input class="form-control form-control-lg" type="password" name="password" autocomplete="current-password" required>
+                </div>
+                <button class="btn btn-primary btn-lg w-100" type="submit">
+                    <i class="bi bi-box-arrow-in-right me-2"></i>Masuk
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

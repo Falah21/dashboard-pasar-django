@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Upload Data — Dashboard PT Pasar Surya{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div><h2 class="page-title mb-1">Upload & Preprocessing Data</h2><p class="text-secondary mb-0">Impor data Excel ke database dashboard.</p></div>
+    <!-- <a href="{% url 'dashboard:index' %}" class="btn btn-light border"><i class="bi bi-arrow-left me-1"></i>Kembali</a> -->
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-7">
+        <div class="panel">
+            <div class="panel-head">Import File Excel</div>
+            <div class="p-4">
+                <div class="info-box mb-4">
+                    <div class="fw-bold mb-2"><i class="bi bi-info-circle me-1"></i>Aturan format nama file</div>
+                    <code>100 A 2020.xlsx</code><br>
+                    <code>100 L 2020.xlsx</code><br>
+                    <code>100 T 2020.xlsx</code>
+                    <hr>
+                    <div class="small">Keterangan:</div>
+                    <div class="small">100 = Selatan, 200 = Timur, 300 = Utara.</div>
+                    <div class="small">A = Air, L = Listrik, T = Tempat.</div>
+                    <!-- <div class="small">Kolom Excel yang dikenali: Tgl Bayar, Tgl Closing, Pasar, Nama Pasar, Alamat, Stand, Pedagang, Periode, Nilai, Kode Cabang, Cabang, Jenis Tagihan.</div> -->
+                </div>
+
+                {% if form.non_field_errors %}<div class="alert alert-danger">{{ form.non_field_errors }}</div>{% endif %}
+                <form method="post" enctype="multipart/form-data" data-loading="true">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Pilih file Excel</label>
+                        <input class="form-control" type="file" name="files" multiple accept=".xlsx,.xls" required>
+                        {% if form.files.errors %}<div class="text-danger small mt-1">{{ form.files.errors|striptags }}</div>{% endif %}
+                    </div>
+                    <div class="form-check mb-4">
+                        <input class="form-check-input" type="checkbox" name="replace_all" id="replaceAll">
+                        <label class="form-check-label fw-semibold text-danger" for="replaceAll">Hapus seluruh data lama sebelum import</label>
+                    </div>
+                    <button class="btn btn-primary px-4" type="submit"><i class="bi bi-cloud-arrow-up me-1"></i>Proses & Simpan</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-5">
+        <div class="panel">
+            <div class="panel-head"
+                style="cursor: pointer;"
+                data-bs-toggle="collapse"
+                data-bs-target="#existingFiles"
+                aria-expanded="true"
+                aria-controls="existingFiles">
+
+                File yang Sudah Diimpor
+                <span class="badge-soft">{{ existing_files|length }}</span>
+
+                <i class="bi bi-chevron-down ms-2"></i>
+            </div>
+
+            <div id="existingFiles" class="collapse show">
+                <div class="p-0 existing-files">
+                    {% for file in existing_files %}
+                        <div class="file-row">
+                            <i class="bi bi-file-earmark-excel text-success me-2"></i>
+                            {{ file }}
+                        </div>
+                    {% empty %}
+                        <div class="p-4 text-center text-secondary">
+                            Belum ada file di database.
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- <div class="col-lg-5">
+        <div class="panel">
+            <div class="panel-head" style="cursor: pointer;" data-bs-toggle="collapse" data-bs-target="#existingFiles" aria-expanded="true" aria-controls="existingFiles"> File yang Sudah Diimpor <span class="badge-soft">{{ existing_files|length }}</span></div>
+            <div class="p-0 existing-files">
+                {% for file in existing_files %}
+                <div class="file-row"><i class="bi bi-file-earmark-excel text-success me-2"></i>{{ file }}</div>
+                {% empty %}<div class="p-4 text-center text-secondary">Belum ada file.</div>{% endfor %}
+            </div>
+        </div>
+    </div> -->
+</div>
+{% endblock %}

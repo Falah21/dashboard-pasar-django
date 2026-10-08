@@ -1,0 +1,229 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block page_title %}Dashboard Rekening PT Pasar Surya{% endblock %}
+
+{% block content %}
+
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
+    <div>
+        <p class="text-secondary mb-0">Dashboard ini berisi ringkasan nilai rekening berdasarkan data yang telah diimpor.</p>
+    </div>
+    <!-- <a href="{% url 'dashboard:upload' %}" class="btn btn-primary">
+        <i class="bi bi-cloud-arrow-up me-1"></i> Upload Data
+    </a> -->
+</div>
+
+{% if no_data %}
+<div class="empty-state card border-0 shadow-sm">
+    <div class="card-body text-center py-5">
+        <i class="bi bi-database-exclamation display-4 text-secondary"></i>
+        <h4 class="mt-3">Belum ada data</h4>
+        <p class="text-secondary">Upload file Excel terlebih dahulu untuk mengisi dashboard.</p>
+        <a class="btn btn-primary" href="{% url 'dashboard:upload' %}">Upload Excel</a>
+    </div>
+</div>
+{% else %}
+
+<form method="get" class="card filter-card border-0 shadow-sm mb-4">
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h6 class="fw-bold mb-0"><i class="bi bi-funnel-fill me-2"></i>Filter Dashboard</h6>
+            <a class="btn btn-sm btn-light border" href="{% url 'dashboard:index' %}">Reset Filter</a>
+        </div>
+        <div class="row g-3">
+            <div class="col-md-3">
+                <label class="form-label small fw-semibold">Tahun</label>
+                <select class="form-select" name="tahun" multiple size="4">
+                    {% for value in filter_opts.tahun %}
+                    <option value="{{ value }}" {% if value in filter_opts.tahun_sel %}selected{% endif %}>{{ value }}</option>
+                    {% endfor %}
+                </select>
+                <small class="text-secondary">Ctrl + klik untuk memilih beberapa.</small>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small fw-semibold">Cabang</label>
+                <select class="form-select" name="cabang" multiple size="4">
+                    {% for value in filter_opts.cabang %}
+                    <option value="{{ value }}" {% if value in filter_opts.cabang_sel %}selected{% endif %}>{{ value }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small fw-semibold">Jenis Tagihan</label>
+                <select class="form-select" name="jenis" multiple size="4">
+                    {% for value in filter_opts.jenis %}
+                    <option value="{{ value }}" {% if value in filter_opts.jenis_sel %}selected{% endif %}>{{ value }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small fw-semibold">Pasar</label>
+                <select class="form-select" name="pasar" multiple size="4">
+                    {% for value in filter_opts.pasar %}
+                    <option value="{{ value }}" {% if value in filter_opts.pasar_sel %}selected{% endif %}>{{ value }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+        <div class="mt-3 text-end">
+            <button class="btn btn-primary px-4">
+                <!-- <i class="bi bi-check2-circle me-1"></i> -->
+                Terapkan Filter
+            </button>
+        </div>
+    </div>
+</form>
+
+{% if not has_filtered_data %}
+<div class="alert alert-warning">Tidak ada data yang sesuai dengan filter.</div>
+{% endif %}
+
+<div class="row g-3 mb-4">
+    <div class="col-xl col-md-4">
+        <div class="kpi-card">
+            <span>Total Data</span>
+            <strong>{{ kpi.total_data }}</strong>
+            <i class="bi bi-database"></i>
+        </div>
+    </div>
+    <div class="col-xl col-md-4">
+        <div class="kpi-card" title="{{ kpi.total_pendapatan_full }}">
+            <span>Total Pendapatan</span>
+            <strong class="money">{{ kpi.total_pendapatan }}</strong>
+            <i class="bi bi-cash-stack"></i>
+        </div>
+    </div>
+    <div class="col-xl col-md-4">
+        <div class="kpi-card">
+            <span>Total Pasar</span>
+            <strong>{{ kpi.total_pasar }}</strong>
+            <i class="bi bi-shop"></i>
+        </div>
+    </div>
+    <div class="col-xl col-md-6">
+        <div class="kpi-card">
+            <span>Total Stand</span>
+            <strong>{{ kpi.total_stand }}</strong>
+            <i class="bi bi-grid-3x3-gap"></i>
+        </div>
+    </div>
+    <div class="col-xl col-md-6">
+        <div class="kpi-card">
+            <span>Total Pedagang</span>
+            <strong>{{ kpi.total_pedagang }}</strong>
+            <i class="bi bi-people"></i>
+        </div>
+    </div>
+</div>
+
+<hr class="my-3">
+
+<div class="row g-3 mb-4">
+    <div class="col-xl-4">
+        <div class="panel h-100">
+            <div class="panel-head">
+                <span>Top Pendapatan Pasar</span>
+                <span class="badge-soft">{{ top_pasar|length }} Pasar</span>
+            </div>
+            <div class="top-list" style="max-height: 420px; overflow-y: auto;">
+                {% for item in top_pasar %}
+                <div class="top-item">
+                    <span class="rank">{{ item.rank }}.</span>
+                    <span class="market-name">{{ item.nama }}</span>
+                    <span class="market-value">{{ item.nilai_formatted }}</span>
+                </div>
+                {% empty %}
+                <div class="p-4 text-center text-secondary">Tidak ada data.</div>
+                {% endfor %}
+            </div>
+            <div class="text-secondary small px-3 pb-2">
+                1 - {{ top_pasar|length }} / {{ top_pasar|length }}
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-8">
+        <div class="panel h-100">
+            <div class="panel-head">Nilai Tagihan per Cabang</div>
+            <div class="chart-box" id="chartCabang" style="height: 420px;"></div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-xl-4">
+        <div class="panel h-100">
+            <div class="panel-head">Distribusi Jenis Tagihan</div>
+            <div class="chart-box" id="chartDistribusi" style="height: 420px;"></div>
+        </div>
+    </div>
+    <div class="col-xl-8">
+        <div class="panel h-100">
+            <div class="panel-head">Nilai Tagihan per Pasar (Top 5)</div>
+            <div class="chart-box" id="chartPasar" style="height: 420px;"></div>
+        </div>
+    </div>
+</div>
+
+<div class="panel mb-4">
+    <div class="panel-head">Tren Nilai Tagihan per Bulan</div>
+    <div class="chart-box chart-wide" id="chartTren" style="height: 280px;"></div>
+</div>
+
+<details class="panel mb-4">
+    <summary class="panel-head" style="cursor: pointer;">
+        Tampilkan tabel data lengkap
+    </summary>
+    <div class="p-3">
+        <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+            <table class="table table-sm table-hover">
+                <thead class="table-light">
+                    <tr>
+                        <th>Tgl Bayar</th>
+                        <th>Tgl Closing</th>
+                        <th>Cabang</th>
+                        <th>Nama Pasar</th>
+                        <th>Alamat</th>
+                        <th>Stand</th>
+                        <th>Pedagang</th>
+                        <th>Jenis Tagihan</th>
+                        <th>Periode</th>
+                        <th class="text-end">Nilai</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in table_rows %}
+                    <tr>
+                        <td>{{ item.tgl_bayar|date:"d-m-Y" }}</td>
+                        <td>{{ item.tgl_closing|date:"d-m-Y" }}</td>
+                        <td>{{ item.cabang }}</td>
+                        <td>{{ item.nama_pasar }}</td>
+                        <td>{{ item.alamat }}</td>
+                        <td>{{ item.stand }}</td>
+                        <td>{{ item.pedagang }}</td>
+                        <td>{{ item.jenis_tagihan }}</td>
+                        <td>{{ item.periode }}</td>
+                        <td class="text-end">{{ item.nilai_formatted }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="10" class="text-center text-secondary">Tidak ada data.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</details>
+
+{{ chart_cabang|json_script:"chartCabangData" }}
+{{ chart_pasar|json_script:"chartPasarData" }}
+{{ chart_distribusi|json_script:"chartDistribusiData" }}
+{{ chart_tren|json_script:"chartTrenData" }}
+
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+{% if not no_data %}
+<script src="{% static 'js/dashboard.js' %}"></script>
+{% endif %}
+{% endblock %}

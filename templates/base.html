@@ -1,0 +1,491 @@
+{% load static %}
+<!doctype html>
+<html lang="id">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}Dashboard Rekening - PT Pasar Surya{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="{% static 'css/style.css' %}" rel="stylesheet">
+
+    <style>
+        /* ===== SIDEBAR ===== */
+        .app-sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 240px;
+            height: 100vh;
+            background: #1f2937;
+            color: #e5e7eb;
+            padding: 0;
+            overflow-y: auto;
+            z-index: 1000;
+            transition: transform 0.3s ease;
+        }
+        .app-sidebar .brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 20px 20px;
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: #ffffff;
+            text-decoration: none;
+            border-bottom: 1px solid #374151;
+        }
+        .app-sidebar .brand i {
+            font-size: 1.4rem;
+            color: #60a5fa;
+        }
+        .app-sidebar .nav-section {
+            padding: 12px 0;
+        }
+        .app-sidebar .nav-label {
+            padding: 8px 20px;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #9ca3af;
+            font-weight: 600;
+        }
+        .app-sidebar .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 11px 20px;
+            color: #d1d5db;
+            text-decoration: none;
+            font-size: 0.92rem;
+            font-weight: 500;
+            transition: all 0.15s;
+            border-left: 3px solid transparent;
+        }
+        .app-sidebar .nav-item:hover {
+            background: #374151;
+            color: #ffffff;
+        }
+        .app-sidebar .nav-item.active {
+            background: #374151;
+            color: #ffffff;
+            border-left-color: #60a5fa;
+        }
+        .app-sidebar .nav-item i {
+            font-size: 1.1rem;
+            width: 20px;
+            text-align: center;
+        }
+
+        /* ===== MAIN CONTENT ===== */
+        .app-main {
+            margin-left: 240px;
+            min-height: 100vh;
+            background: #f8fafc;
+        }
+        .app-topbar {
+            background: #ffffff;
+            border-bottom: 1px solid #e5e7eb;
+            padding: 14px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 999;
+        }
+        .app-topbar .page-title-top {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: #1f2937;
+            margin: 0;
+        }
+        .app-content {
+            padding: 24px;
+        }
+
+        /* ===== LOADING OVERLAY ===== */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(15, 23, 42, 0.75);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            z-index: 99999;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            color: #ffffff;
+        }
+        .loading-overlay.active {
+            display: flex;
+        }
+        .loading-spinner {
+            width: 64px;
+            height: 64px;
+            border: 5px solid rgba(255, 255, 255, 0.2);
+            border-top-color: #3b82f6;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-bottom: 24px;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .loading-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: #ffffff;
+        }
+        .loading-subtitle {
+            font-size: 0.95rem;
+            color: #cbd5e1;
+            max-width: 400px;
+            text-align: center;
+            line-height: 1.5;
+        }
+        .loading-progress-text {
+            margin-top: 16px;
+            font-size: 0.85rem;
+            color: #94a3b8;
+            font-style: italic;
+        }
+
+        /* ===== MOBILE ===== */
+        .app-toggle {
+            display: none;
+            background: transparent;
+            border: none;
+            font-size: 1.4rem;
+            color: #1f2937;
+            cursor: pointer;
+            padding: 4px 8px;
+        }
+        @media (max-width: 768px) {
+            .app-sidebar {
+                transform: translateX(-100%);
+            }
+            .app-sidebar.open {
+                transform: translateX(0);
+            }
+            .app-main {
+                margin-left: 0;
+            }
+            .app-toggle {
+                display: block;
+            }
+        }
+    </style>
+
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+    <!-- ===== LOADING OVERLAY ===== -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner"></div>
+        <div class="loading-title">Mohon Menunggu</div>
+        <div class="loading-subtitle">Data sedang diproses. Jangan tutup atau refresh halaman ini.</div>
+        <div class="loading-progress-text" id="loadingProgressText">Memulai proses...</div>
+    </div>
+
+<!-- =========================================================
+     SIDEBAR
+     ========================================================= -->
+<aside class="app-sidebar" id="appSidebar">
+    <a class="brand" href="{% url 'dashboard:index' %}">
+        <img src="{% static 'images/logo.png' %}" alt="PT Pasar Surya" class="brand-logo">
+        <span>PT Pasar Surya</span>
+    </a>
+
+    <div class="nav-section">
+        <div class="nav-label">Menu</div>
+
+        <a class="nav-item {% if request.resolver_match.url_name == 'index' %}active{% endif %}"
+           href="{% url 'dashboard:index' %}">
+            <i class="bi bi-grid-1x2-fill"></i>
+            <span>Dashboard</span>
+        </a>
+
+        <a class="nav-item {% if request.resolver_match.url_name == 'upload' %}active{% endif %}"
+           href="{% url 'dashboard:upload' %}">
+            <i class="bi bi-cloud-arrow-up-fill"></i>
+            <span>Upload Data</span>
+        </a>
+    </div>
+
+    <!-- {% if user.is_authenticated and user.is_staff %}
+    <div class="nav-section">
+        <div class="nav-label">Admin</div>
+        <a class="nav-item" href="/admin/">
+            <i class="bi bi-gear-fill"></i>
+            <span>Django Admin</span>
+        </a>
+    </div>
+    {% endif %} -->
+</aside>
+
+<!-- =========================================================
+     MAIN CONTENT
+     ========================================================= -->
+<div class="app-main">
+    <div class="app-topbar">
+        <div class="d-flex align-items-center gap-2">
+            <button class="app-toggle" onclick="document.getElementById('appSidebar').classList.toggle('open')">
+                <i class="bi bi-list"></i>
+            </button>
+            <h1 class="page-title-top">{% block page_title %}Dashboard{% endblock %}</h1>
+        </div>
+        <!-- <div>
+            {% if user.is_authenticated %}
+                <span class="text-secondary small">
+                    <i class="bi bi-person-circle me-1"></i>{{ user.username }}
+                </span>
+            {% endif %}
+        </div> -->
+    </div>
+
+    <div class="app-content">
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show shadow-sm" role="alert">
+                {{ message }}
+                <button class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        {% endfor %}
+
+        {% block content %}{% endblock %}
+    </div>
+</div>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+<!-- Plugin DataLabels -->
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+
+<!-- Plotly (opsional) -->
+<script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+
+<!-- <script>
+// =========================================================
+// LOADING OVERLAY CONTROLLER
+// =========================================================
+(function() {
+    const overlay = document.getElementById("loadingOverlay");
+    const progressText = document.getElementById("loadingProgressText");
+
+    // Daftar pesan yang berganti-ganti biar user tahu progres
+    const PESAN_PROGRESS = [
+        "Membaca file Excel...",
+        "Melakukan preprocessing data...",
+        "Membersihkan karakter aneh...",
+        "Memetakan nama pasar...",
+        "Memvalidasi tahun & nilai...",
+        "Menyimpan ke database...",
+        "Hampir selesai...",
+    ];
+
+    let progressInterval = null;
+    let progressIndex = 0;
+
+    window.showLoading = function(customMessage) {
+        if (!overlay) return;
+        overlay.classList.add("active");
+
+        if (customMessage) {
+            progressText.textContent = customMessage;
+        } else {
+            progressIndex = 0;
+            progressText.textContent = PESAN_PROGRESS[0];
+            progressInterval = setInterval(function() {
+                progressIndex = (progressIndex + 1) % PESAN_PROGRESS.length;
+                progressText.textContent = PESAN_PROGRESS[progressIndex];
+            }, 1500);
+        }
+
+        // Cegah user klik apapun
+        document.body.style.pointerEvents = "none";
+    };
+
+    window.hideLoading = function() {
+        if (!overlay) return;
+        overlay.classList.remove("active");
+        if (progressInterval) {
+            clearInterval(progressInterval);
+            progressInterval = null;
+        }
+        document.body.style.pointerEvents = "auto";
+    };
+
+    // =========================================================
+    // AUTO-BIND: semua form dengan atribut data-loading="true"
+    // =========================================================
+    document.addEventListener("DOMContentLoaded", function() {
+        document.querySelectorAll('form[data-loading="true"]').forEach(function(form) {
+            form.addEventListener("submit", function(e) {
+                // Validasi dasar
+                if (form.checkValidity && !form.checkValidity()) {
+                    return; // biarkan browser tampilkan pesan validasi
+                }
+                showLoading();
+            });
+        });
+    });
+})();
+</script> -->
+
+<script>
+// =========================================================
+// LOADING OVERLAY CONTROLLER
+// =========================================================
+(function() {
+    const overlay = document.getElementById("loadingOverlay");
+    const titleEl = document.getElementById("loadingTitle");
+    const subtitleEl = document.getElementById("loadingSubtitle");
+    const progressText = document.getElementById("loadingProgressText");
+
+    // Pesan untuk konteks UPLOAD
+    const PESAN_UPLOAD = [
+        "Membaca file Excel...",
+        "Melakukan preprocessing data...",
+        "Membersihkan karakter aneh...",
+        "Memetakan nama pasar...",
+        "Memvalidasi tahun & nilai...",
+        "Menyimpan ke database...",
+        "Hampir selesai...",
+    ];
+
+    // Pesan untuk konteks NAVIGASI (pindah halaman)
+    const PESAN_NAVIGASI = [
+        "Memuat halaman...",
+        "Menyiapkan data...",
+        "Hampir selesai...",
+    ];
+
+    let progressInterval = null;
+    let progressIndex = 0;
+
+    // =========================================================
+    // SHOW LOADING
+    // mode: "upload" atau "navigasi"
+    // =========================================================
+    window.showLoading = function(mode) {
+        if (!overlay) return;
+        mode = mode || "upload";
+
+        // Set title & subtitle
+        if (titleEl) {
+            titleEl.textContent = mode === "navigasi" ? "Memuat Halaman" : "Mohon Menunggu";
+        }
+        if (subtitleEl) {
+            subtitleEl.textContent = mode === "navigasi"
+                ? "Sedang memuat halaman, mohon tunggu sebentar..."
+                : "Data sedang diproses. Jangan tutup atau refresh halaman ini.";
+        }
+
+        // Set pesan berputar
+        const pesanList = mode === "navigasi" ? PESAN_NAVIGASI : PESAN_UPLOAD;
+        progressIndex = 0;
+        if (progressText) {
+            progressText.textContent = pesanList[0];
+        }
+
+        overlay.classList.add("active");
+
+        // Ganti pesan tiap 1.5 detik
+        if (progressInterval) clearInterval(progressInterval);
+        progressInterval = setInterval(function() {
+            progressIndex = (progressIndex + 1) % pesanList.length;
+            if (progressText) {
+                progressText.textContent = pesanList[progressIndex];
+            }
+        }, 1500);
+
+        // Cegah klik
+        document.body.style.pointerEvents = "none";
+    };
+
+    // =========================================================
+    // HIDE LOADING
+    // =========================================================
+    window.hideLoading = function() {
+        if (!overlay) return;
+        overlay.classList.remove("active");
+        if (progressInterval) {
+            clearInterval(progressInterval);
+            progressInterval = null;
+        }
+        document.body.style.pointerEvents = "auto";
+    };
+
+    // =========================================================
+    // AUTO-BIND: Form submit → loading overlay (mode upload)
+    // =========================================================
+    document.addEventListener("DOMContentLoaded", function() {
+
+        // ---- 1. FORM SUBMIT (upload data) ----
+        document.querySelectorAll('form[data-loading="true"]').forEach(function(form) {
+            form.addEventListener("submit", function(e) {
+                if (form.checkValidity && !form.checkValidity()) {
+                    return; // biarkan validasi HTML5 jalan
+                }
+                showLoading("upload");
+            });
+        });
+
+        // ---- 2. LINK NAVIGASI (menu sidebar & link internal) ----
+        // Cari semua link <a> yang menuju halaman dalam aplikasi ini
+        document.querySelectorAll("a").forEach(function(link) {
+            // Skip kalau:
+            // - Link punya target="_blank" (buka tab baru)
+            // - Link download
+            // - Link eksternal (http://, https://)
+            // - Link anchor (#)
+            // - Link di dalam form (submit button)
+            // - Link yang punya atribut data-no-loading
+
+            if (link.hasAttribute("data-no-loading")) return;
+            if (link.target === "_blank") return;
+            if (link.hasAttribute("download")) return;
+
+            const href = link.getAttribute("href");
+            if (!href) return;
+            if (href.startsWith("#")) return;
+            if (href.startsWith("javascript:")) return;
+            if (href.startsWith("http://") || href.startsWith("https://")) return;
+            if (href.startsWith("mailto:") || href.startsWith("tel:")) return;
+
+            // Bind click
+            link.addEventListener("click", function(e) {
+                // Kalau user pakai Ctrl/Cmd/middle-click → biarkan buka tab baru
+                if (e.ctrlKey || e.metaKey || e.shiftKey || e.button !== 0) return;
+
+                // Kalau link disabled, biarkan
+                if (link.classList.contains("disabled")) return;
+
+                showLoading("navigasi");
+            });
+        });
+
+        // ---- 3. BACK/FORWARD BROWSER ----
+        // Kalau user back/forward, sembunyikan overlay
+        window.addEventListener("pageshow", function(e) {
+            // Kalau di-cache (bfcache), sembunyikan overlay
+            if (e.persisted) {
+                hideLoading();
+            }
+        });
+
+    });
+})();
+</script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>
