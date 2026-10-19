@@ -95,10 +95,9 @@ INSTALLED_APPS = [
 # =========================================================
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
-    "dashboard.middleware.MaintenanceModeMiddleware",
-    "dashboard.middleware_login.LoginRequiredMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
-    "django.contrib.sessions.middleware.SessionMiddleware",       # ⭐ session harus di atas
+    "django.contrib.sessions.middleware.SessionMiddleware",
+    "dashboard.middleware.MaintenanceModeMiddleware",
     "dashboard.middleware_login.LoginRequiredMiddleware",          # ⭐ login setelah session
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
