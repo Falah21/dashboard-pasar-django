@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maintenance — Dashboard Data Pasar</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        body {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            color: #e2e8f0;
+            margin: 0;
+            font-family: 'Segoe UI', Arial, sans-serif;
+        }
+        .maintenance-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 48px 40px;
+            max-width: 520px;
+            text-align: center;
+            backdrop-filter: blur(8px);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+        }
+        .maintenance-icon {
+            font-size: 5rem;
+            color: #60a5fa;
+            margin-bottom: 16px;
+            animation: rotate 4s linear infinite;
+            display: inline-block;
+        }
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 12px;
+        }
+        p {
+            font-size: 1rem;
+            color: #cbd5e1;
+            line-height: 1.6;
+            margin-bottom: 24px;
+        }
+        .badge-info {
+            display: inline-block;
+            background: rgba(96, 165, 250, 0.15);
+            color: #93c5fd;
+            border: 1px solid rgba(96, 165, 250, 0.3);
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        .dots {
+            display: inline-block;
+        }
+        .dots::after {
+            content: '';
+            animation: dots 1.5s steps(4, end) infinite;
+        }
+        @keyframes dots {
+            0%, 20% { content: ''; }
+            40% { content: '.'; }
+            60% { content: '..'; }
+            80%, 100% { content: '...'; }
+        }
+    </style>
+</head>
+<body>
+    <div class="maintenance-card">
+        <div class="maintenance-icon">
+            <i class="bi bi-gear-wide-connected"></i>
+        </div>
+        <h1>Sedang Dalam Perbaikan</h1>
+        <p>
+            Kami sedang melakukan pemeliharaan sistem untuk meningkatkan layanan.<br>
+            Silakan kembali beberapa saat lagi.
+        </p>
+        <div class="badge-info">
+            <i class="bi bi-clock-history me-1"></i>
+            Maintenance<span class="dots"></span>
+        </div>
+        <p style="margin-top: 32px; font-size: 0.8rem; color: #64748b;">
+            &copy; 2026 Dashboard Data Pasar
+        </p>
+    </div>
+</body>
+</html>
